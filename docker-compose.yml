@@ -1,0 +1,43 @@
+
+services:
+  micro-service:
+    image: filestorageapp:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      - psql_database
+    environment:
+      - SERVER_PORT = 8081
+      - SPRING_DATASOURCE_URL = jdbc:postgresql://psql_database/fs_database
+
+  psql_database:
+    image: postgres:15.7
+    environment:
+      POSTGRES_DB: fs_database
+      POSTGRES_USER: Admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "127.0.0.1:8082:5432"
+    volumes:
+      - ./db/2_create_db.sql:/docker-entrypoint-initdb.d/2_create_db.sql
+      - psql_database-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin4
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "127.0.0.1:5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  psql_database-data:
+  pgadmin-data:
